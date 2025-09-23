@@ -1,13 +1,14 @@
-//OG wrong code
+// OG wrong code
 #include <iostream>
 using namespace std;
 
-int block1() {
-    //Block1
+int block1()
+{
+    // Block1
     int a = 78;
     int b = 85;
     int c = 92;
-    //int tmp = a;
+    // int tmp = a;
     int total = 0;
     total = a + b + c;
     double avg;
@@ -21,25 +22,28 @@ int block1() {
     return 0;
 }
 
-int block2() {
+int block2()
+{
 
-    //Block2
+    // Block2
     int leftsocre = 40;
     int rightsocre = 60;
     int sum = leftsocre + rightsocre;
     double average = sum / 2.0;
-    bool passed = average > 50.0;//const
+    bool passed = average > 50.0; // const
     cout << "avg:" << average << "passed? " << (passed ? "yes" : "no") << endl;
     return 0;
 }
 
-int block3() {
-    //Block3
+int block3()
+{
+    // Block3
     double average;
     int n;
     cin >> n;
     int sum = 0;
-    for (int i = 0;i < n; ++i) {
+    for (int i = 0; i < n; ++i)
+    {
         int v;
         cin >> v;
         sum += v;
@@ -49,11 +53,13 @@ int block3() {
     return 0;
 }
 
-int block4() {
-    int maxVal = 0;
+int block4()
+{
+    int maxVal = 0; // 增加初始化赋值
     int count;
     cin >> count;
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i)
+    {
         int val;
         cin >> val;
         if (val > maxVal)
@@ -65,9 +71,30 @@ int block4() {
 
 int main()
 {
-    block1();
-    block2();
-    block3();
-    block4();
-    return 0;
+    int choice;
+    cout << "run exercise 1 2 3 4" << endl;
+    cin >> choice;
+    switch (choice)
+    {
+    case 1:
+    {
+        block1();
+        break;
+    }
+    case 2:
+    {
+        block2();
+        break;
+    }
+    case 3:
+    {
+        block3();
+        break;
+    }
+    case 4:
+    {
+        block4();
+        break;
+    }
+    }
 }

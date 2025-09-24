@@ -1,14 +1,21 @@
-#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <iterator>
 using namespace std;
+// ✅ 高效清晰的top-k API
+vector<int> top_k_sorted(const vector<int> &input, size_t k)
+{
+    if (input.empty() || k == 0)
+        return {};
 
-int main() {
-    int n;                    // 1)
-    if (true) {
-        int n = 3;            // 2) 内部n声明，实例化，赋值
-        int* p = new int(n);  // 3) 堆指针p声明，实例化，并指向n进行赋值
-        *p += 1;              // 4)
-        cout << *p << "\n";
-        delete p;             // 5)p被销毁
-    }                         // 6)内部n被销毁
-    cout << n << "\n";        // 7)
-}                             // 8)外部n被销毁  
+    k = min(k, input.size());
+    vector<int> result;
+    result.reserve(k);
+
+    // 使用部分排序拷贝：O(n log k) 时间复杂度，只需一次拷贝
+    partial_sort_copy(input.begin(), input.end(),
+                      result.begin(), result.end(),
+                      greater<int>());
+
+    return result;
+}

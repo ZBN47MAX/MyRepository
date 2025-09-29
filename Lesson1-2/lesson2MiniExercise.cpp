@@ -126,7 +126,7 @@ cout << "Average: " << average << "\n";
     }
     const double average = sum / static_cast<double>(n);
     cout << "Average: " << average << "\n";
-}
+
 
 //C2 Which variables can be const?
 // average因为在优化后声明赋值完成后没有涉及计算的部分

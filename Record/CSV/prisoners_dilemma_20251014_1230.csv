@@ -1,0 +1,4 @@
+SessionID,Player1Strategy,Player2Strategy,Rounds,Player1Score,Player2Score,T,R,P,S,NoiseLevel
+202510141230P1custom1P2RandomR10G3,custom1,Random,10,25,30,5,3,1,0,0.000000
+202510141230P1custom1P2RandomR10G3,custom1,Random,10,21,26,5,3,1,0,0.000000
+202510141230P1custom1P2RandomR10G3,custom1,Random,10,26,21,5,3,1,0,0.000000

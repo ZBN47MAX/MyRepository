@@ -1,13 +1,13 @@
 // 待办：
 /*
-增加种子生成器（能影响回合数，对局数，玩家1使用策略，玩家2使用策略，是否激活策略进化，噪音级别）保证相同种子能产出相同结果
+增加种子生成器（能影响回合数，对局数，玩家1使用策略，玩家2使用策略，是否激活策略进化，噪音级别）保证相同种子能产出相同结果--暂时放弃
 增加对局噪音（完成
 增加对局进化 给有进化的策略加个开关
-增加保存或载入文件
+增加保存或载入文件--暂时放弃
 增加对局变异 在策略中增加的有规律的特殊噪音
 增加输出文件格式选择（完成，除了json
 已有完全合作，完全背叛，标准以牙还牙。增加策略：冷酷触发，巴甫洛夫，随机，反悔以牙还牙，探针策略（完成
-增加两个全新策略
+增加两个全新策略--施工
 */
 #include <iostream>
 #include <vector>
@@ -48,7 +48,7 @@ bool directory_exists(const string &path)
 // 创建所有必要的目录
 void create_output_directories()
 {
-    vector<string> dirs = {"Record", "Record/", "Record/TXT"};
+    vector<string> dirs = {"Record", "Record/CSV", "Record/TXT"}; // 修复目录路径
 
     for (const auto &dir : dirs)
     {
@@ -426,11 +426,8 @@ public:
         exploit_mode = false;
     }
 };
-class custom1 : public Strategy
-{
 
-};
-// 悔悟以牙还牙策略 (Q2新增)
+// 悔悟以牙还牙策略
 class CTFT : public Strategy
 {
 private:
@@ -476,6 +473,100 @@ public:
     void reset() override
     {
         last_was_mistake = false;
+    }
+};
+
+// 策略一：计数宽容策略 (Counting Forgiving)
+class custom1 : public Strategy
+{
+private:
+    int opponent_defects = 0;
+    mt19937 gen;
+    uniform_real_distribution<double> dis;
+
+public:
+    custom1() : gen(random_device{}()), dis(0.0, 1.0) {}
+
+    string get_name() override
+    {
+        return "custom1"; // 修复：返回简单名称
+    }
+
+    bool make_choice(const vector<bool> &my_history, const vector<bool> &opponent_history,
+                     const vector<int> &my_scores, const vector<int> &opponent_scores) override
+    {
+        if (opponent_history.empty())
+        {
+            opponent_defects = 0;
+            return true; // 第一轮总是合作
+        }
+
+        // 简单计数：记录对手背叛次数
+        if (!opponent_history.back())
+        {
+            opponent_defects++;
+        }
+
+        // 简单进化：背叛太多就反击
+        if (opponent_defects > 2)
+        {
+            return false; // 永远背叛
+        }
+        else
+        {
+            // 简单变异：10%概率随机选择
+            if (dis(gen) < 0.1)
+            {
+                return dis(gen) > 0.5; // 随机选择合作或背叛
+            }
+            return true; // 默认合作
+        }
+    }
+
+    void reset() override
+    {
+        opponent_defects = 0;
+    }
+};
+
+// 策略二：模仿变异策略 (Copycat with Mutation)
+class custom2 : public Strategy
+{
+private:
+    mt19937 gen;
+    uniform_real_distribution<double> dis;
+
+public:
+    custom2() : gen(random_device{}()), dis(0.0, 1.0) {}
+
+    string get_name() override
+    {
+        return "custom2"; // 修复：返回简单名称
+    }
+
+    bool make_choice(const vector<bool> &my_history, const vector<bool> &opponent_history,
+                     const vector<int> &my_scores, const vector<int> &opponent_scores) override
+    {
+        if (opponent_history.empty())
+        {
+            return true; // 第一轮合作
+        }
+
+        // 基本策略：模仿对手上一轮的选择
+        bool base_action = opponent_history.back();
+
+        // 简单变异：15%概率做相反选择
+        if (dis(gen) < 0.15)
+        {
+            return !base_action; // 做相反选择
+        }
+
+        return base_action; // 模仿对手
+    }
+
+    void reset() override
+    {
+        // 无状态需要重置
     }
 };
 
@@ -723,6 +814,10 @@ public:
                         strategy = new ALLC();
                     else if (strat_name == "ALLD")
                         strategy = new ALLD();
+                    else if (strat_name == "custom1")
+                        strategy = new custom1();
+                    else if (strat_name == "custom2")
+                        strategy = new custom2();
 
                     if (!strategy)
                         continue;
@@ -793,6 +888,8 @@ public:
         cout << "• CTFT: Specifically designed for noise, maintains cooperation best" << endl;
         cout << "• ALLC: Always cooperates, unaffected by noise but always exploited" << endl;
         cout << "• ALLD: Always defects, stable but misses cooperation benefits" << endl;
+        cout << "• custom1: Counting forgiving strategy with 10% mutation" << endl;
+        cout << "• custom2: Copycat strategy with 15% mutation" << endl;
 
         // 详细策略分析
         cout << "\n>>> Detailed Strategy Performance under Noise:" << endl;
@@ -831,7 +928,9 @@ public:
         add_strategy(new Pavlov());
         add_strategy(new Random());
         add_strategy(new Probe());
-        add_strategy(new CTFT()); // Q2新增策略
+        add_strategy(new CTFT());
+        add_strategy(new custom1());
+        add_strategy(new custom2());
     }
 
     void set_session_id(const string &session_id)
@@ -968,7 +1067,7 @@ public:
                         global_noise.get_noise_level());
     }
 
-    void tournament(int rounds, int games, string fixed_strategy_name, Arena &arena)
+    void tournament(int rounds, int repeats, string fixed_strategy_name, Arena &arena) // 参数改为repeats
     {
         cout << "\n"
              << string(70, '*') << endl;
@@ -976,7 +1075,7 @@ public:
         cout << string(70, '*') << endl;
         cout << "| Fixed Player: " << setw(12) << left << fixed_strategy_name
              << " | Rounds/Match: " << setw(3) << rounds
-             << " | Games/Opponent: " << setw(2) << games << " |" << endl;
+             << " | Repeats/Opponent: " << setw(2) << repeats << " |" << endl; // 显示Repeats
         arena.print_scores();
 
         Strategy *fixed_strategy = strategy_map[fixed_strategy_name];
@@ -994,17 +1093,16 @@ public:
             cout << ">>> VS STRATEGY: " << opp_strategy->get_name() << endl;
             cout << string(50, '~') << endl;
 
-            for (int game = 1; game <= games; game++)
+            for (int repeat = 1; repeat <= repeats; repeat++) // 使用repeats循环
             {
                 Player opponent("Player2", opp_strategy);
                 fixed_player.reset();
 
-                cout << "\n--- Game " << game << " ---" << endl;
+                cout << "\n--- Repeat " << repeat << " ---" << endl;
                 play_single_game(rounds, fixed_player, opponent, arena);
             }
         }
     }
-
     void show_strategies()
     {
         cout << ">>> Available strategies: ";
@@ -1023,7 +1121,7 @@ public:
     // Q2实验运行函数
     void run_q2_experiment(int rounds, int repeats, const vector<double> &noise_levels, Arena &arena)
     {
-        vector<string> q2_strategies = {"TFT", "GrimTrigger", "Pavlov", "CTFT", "ALLC", "ALLD"};
+        vector<string> q2_strategies = {"TFT", "GrimTrigger", "Pavlov", "CTFT", "ALLC", "ALLD", "custom1", "custom2"};
         NoiseSweep sweep;
         sweep.run_sweep(q2_strategies, rounds, repeats, noise_levels, arena);
     }
@@ -1049,14 +1147,13 @@ void show_help()
     cout << "  --p1 STRATEGY             Player 1 strategy (default: ALLC)" << endl;
     cout << "  --p2 STRATEGY             Player 2 strategy (default: ALLD)" << endl;
     cout << "  --rounds NUMBER           Number of rounds per game (default: 3)" << endl;
-    cout << "  --games NUMBER            Number of games (default: 5)" << endl;
+    cout << "  --repeats NUMBER          Number of repeats for experiments (default: 30)" << endl;
     cout << "  --tournament STRATEGY     Tournament mode with fixed strategy" << endl;
-    cout << "  --list                    List available strategies" << endl;
+    cout << "  --strategies              List available strategies" << endl;
     cout << "  --scores T,R,P,S          Set custom scores (default: 5,3,1,0)" << endl;
-    cout << "  --noise LEVEL             Set noise level 0-1 (default: 0)" << endl;
+    cout << "  --epsilon LEVEL           Set noise level 0-1 (default: 0)" << endl;
     cout << "  --format FORMAT           Output format: csv, txt (default: csv)" << endl;
     cout << "  --q2                      Run Q2 noise sweep experiment" << endl;
-    cout << "  --repeats NUMBER          Number of repeats for experiments (default: 30)" << endl;
     cout << "  --noise-levels LIST       Comma-separated noise levels (default: 0.0,0.05,0.1,0.2)" << endl;
     cout << "                            Rules: T > R > P > S and 2R > T + S" << endl;
     cout << "\nAVAILABLE STRATEGIES:" << endl;
@@ -1068,13 +1165,16 @@ void show_help()
     cout << "  Random     - Random choice (50% cooperate)" << endl;
     cout << "  Probe      - Test opponent then exploit or switch to TFT" << endl;
     cout << "  CTFT       - Contrite Tit for Tat (noise-resistant)" << endl;
+    cout << "  custom1    - Counting forgiving: cooperate until 3 defects, 10% mutation" << endl;
+    cout << "  custom2    - Copycat with mutation: mimic opponent with 15% chance to do opposite" << endl;
     cout << "\nEXAMPLES:" << endl;
-    cout << "  ./game --p1 TFT --p2 ALLD --rounds 20" << endl;
-    cout << "  ./game --tournament GrimTrigger --rounds 10 --games 3" << endl;
-    cout << "  ./game --scores 4,3,2,1 --p1 Pavlov --p2 Random" << endl;
-    cout << "  ./game --noise 0.2 --format txt" << endl;
-    cout << "  ./game --q2 --rounds 100 --repeats 30 --noise-levels 0.0,0.05,0.1,0.2" << endl;
-    cout << "  ./game                    (Uses default settings)" << endl;
+    cout << "  testZone --p1 TFT --p2 ALLD --rounds 20" << endl;
+    cout << "  testZone --tournament GrimTrigger --rounds 10 --repeats 3" << endl;
+    cout << "  testZone --scores 4,3,2,1 --p1 Pavlov --p2 Random" << endl;
+    cout << "  testZone --epsilon 0.2 --format txt" << endl;
+    cout << "  testZone --q2 --rounds 100 --repeats 30 --noise-levels 0.0,0.05,0.1,0.2" << endl;
+    cout << "  testZone --strategies" << endl;
+    cout << "  testZone                    (Uses default settings)" << endl;
     cout << string(70, '=') << endl;
 }
 
@@ -1216,11 +1316,10 @@ void parse_args(int argc, char *argv[], GameManager &manager)
     string p1_strategy = "ALLC";
     string p2_strategy = "ALLD";
     int rounds = 3;
-    int games = 5;
-    int repeats = 30;
+    int repeats = 30; // 默认重复次数
     string tournament_strategy = "";
     vector<int> custom_scores = {5, 3, 1, 0}; // 默认 T,R,P,S
-    double noise_level = 0.0;
+    double epsilon = 0.0;                     // 使用epsilon替代noise
     string output_format = "csv";
     bool run_q2_experiment = false;
     vector<double> noise_levels = {0.0, 0.05, 0.1, 0.2};
@@ -1233,7 +1332,7 @@ void parse_args(int argc, char *argv[], GameManager &manager)
             show_help();
             exit(0);
         }
-        else if (strcmp(argv[i], "--list") == 0)
+        else if (strcmp(argv[i], "--strategies") == 0) // 替换 --list 为 --strategies
         {
             manager.show_strategies();
             exit(0);
@@ -1289,20 +1388,7 @@ void parse_args(int argc, char *argv[], GameManager &manager)
                 exit(1);
             }
         }
-        else if (strcmp(argv[i], "--games") == 0)
-        {
-            if (i + 1 < argc)
-            {
-                games = safe_stoi(argv[++i], "--games");
-            }
-            else
-            {
-                cout << "!!! Error: --games requires a number" << endl;
-                show_help();
-                exit(1);
-            }
-        }
-        else if (strcmp(argv[i], "--repeats") == 0)
+        else if (strcmp(argv[i], "--repeats") == 0) // 替换 --games 为 --repeats
         {
             if (i + 1 < argc)
             {
@@ -1353,16 +1439,16 @@ void parse_args(int argc, char *argv[], GameManager &manager)
                 exit(1);
             }
         }
-        else if (strcmp(argv[i], "--noise") == 0)
+        else if (strcmp(argv[i], "--epsilon") == 0) // 替换 --noise 为 --epsilon
         {
             if (i + 1 < argc)
             {
-                noise_level = safe_stod(argv[++i], "--noise");
-                global_noise.set_noise_level(noise_level);
+                epsilon = safe_stod(argv[++i], "--epsilon");
+                global_noise.set_noise_level(epsilon);
             }
             else
             {
-                cout << "!!! Error: --noise requires a number between 0 and 1" << endl;
+                cout << "!!! Error: --epsilon requires a number between 0 and 1" << endl;
                 show_help();
                 exit(1);
             }
@@ -1421,14 +1507,13 @@ void parse_args(int argc, char *argv[], GameManager &manager)
     }
     else if (!tournament_strategy.empty())
     {
-        session_id = generate_unique_id(tournament_strategy, "TOURNAMENT", rounds, games);
+        session_id = generate_unique_id(tournament_strategy, "TOURNAMENT", rounds, repeats); // 使用repeats替代games
     }
     else
     {
-        session_id = generate_unique_id(p1_strategy, p2_strategy, rounds, games);
+        session_id = generate_unique_id(p1_strategy, p2_strategy, rounds, repeats); // 使用repeats替代games
     }
     manager.set_session_id(session_id);
-
     // 创建竞技场并验证分数
     Arena arena(custom_scores[0], custom_scores[1], custom_scores[2], custom_scores[3]);
     if (!arena.validate_scores())
@@ -1464,10 +1549,10 @@ void parse_args(int argc, char *argv[], GameManager &manager)
         cout << "| Player1: " << setw(8) << p1_strategy
              << " | Player2: " << setw(8) << p2_strategy
              << " | Rounds: " << setw(2) << rounds
-             << " | Games: " << setw(2) << games << " |" << endl;
+             << " | Repeats: " << setw(2) << repeats << " |" << endl; // 显示Repeats
         cout << "| Scores: T=" << custom_scores[0] << " R=" << custom_scores[1]
              << " P=" << custom_scores[2] << " S=" << custom_scores[3] << " |" << endl;
-        cout << "| Noise Level: " << fixed << setprecision(2) << noise_level << " |" << endl;
+        cout << "| Epsilon: " << fixed << setprecision(2) << epsilon << " |" << endl; // 显示Epsilon
         cout << "| Output Format: " << output_format << " |" << endl;
         cout << ">>> Session ID: " << session_id << endl;
         cout << ">>> Output file: " << OUTPUT_PATH << endl;
@@ -1483,18 +1568,19 @@ void parse_args(int argc, char *argv[], GameManager &manager)
     if (!tournament_strategy.empty())
     {
         cout << ">>> Running tournament with provided settings..." << endl;
-        manager.tournament(rounds, games, tournament_strategy, arena);
+        // 注意：tournament函数仍然使用games参数，需要修改或适配
+        manager.tournament(rounds, repeats, tournament_strategy, arena); // 使用repeats作为games参数
     }
     else
     {
         Strategy *strat1 = manager.get_strategy(p1_strategy);
         Strategy *strat2 = manager.get_strategy(p2_strategy);
 
-        for (int game = 1; game <= games; game++)
+        for (int repeat = 1; repeat <= repeats; repeat++) // 使用repeats循环
         {
             Player player1("Player1", strat1);
             Player player2("Player2", strat2);
-            cout << "\n=== Game " << game << " ===" << endl;
+            cout << "\n=== Repeat " << repeat << " ===" << endl;
             manager.play_single_game(rounds, player1, player2, arena);
         }
     }
@@ -1528,7 +1614,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // 程序结束时总是显示帮助信息
+    // 程序结束时总是显示帮助信息 
     cout << "\n";
     show_help();
 

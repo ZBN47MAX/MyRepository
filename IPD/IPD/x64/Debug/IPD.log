@@ -1,0 +1,23 @@
+﻿  GameCore.cpp
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(247,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(248,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(249,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(250,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(251,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(252,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(253,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+C:\Users\Alexander\source\repos\IPD\IPD\GameCore.cpp(254,18): warning C4566: 由通用字符名称“\u2022”表示的字符不能在当前代码页(936)中表示出来
+  GameManager.cpp
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(320,41): warning C4101: “e”: 未引用的局部变量
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(325,37): warning C4101: “e”: 未引用的局部变量
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(342,41): warning C4101: “e”: 未引用的局部变量
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(347,37): warning C4101: “e”: 未引用的局部变量
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(363,38): warning C4101: “e”: 未引用的局部变量
+C:\Users\Alexander\source\repos\IPD\IPD\GameManager.cpp(388,38): warning C4101: “e”: 未引用的局部变量
+  Noise.cpp
+  Strategy.cpp
+C:\Users\Alexander\source\repos\IPD\IPD\Strategy.cpp(121,23): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  main.cpp
+  pch.cpp
+  正在生成代码...
+  IPD.vcxproj -> C:\Users\Alexander\source\repos\IPD\x64\Debug\IPD.exe

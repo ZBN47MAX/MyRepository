@@ -1,0 +1,25 @@
+PRISONER'S DILEMMA SIMULATION RESULTS
+Session ID: SES47504P1custom1P2custom2R10G3
+Noise Level: 0.50
+==================================================
+
+GAME 1:
+  Strategies: custom1 vs custom2
+  Rounds: 10
+  Scores: 23 - 23
+  Parameters: T=5 R=3 P=1 S=0
+  Noise Level: 0.500000
+
+GAME 2:
+  Strategies: custom1 vs custom2
+  Rounds: 10
+  Scores: 21 - 21
+  Parameters: T=5 R=3 P=1 S=0
+  Noise Level: 0.500000
+
+GAME 3:
+  Strategies: custom1 vs custom2
+  Rounds: 10
+  Scores: 25 - 20
+  Parameters: T=5 R=3 P=1 S=0
+  Noise Level: 0.500000

@@ -1,2 +1,2 @@
-# MyRepository
-This is the Repository that yet to define what should be upload into it
+# IPD
+This is the Repository that store all the files about NCL CS8501 IPD project

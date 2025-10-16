@@ -490,17 +490,20 @@ public:
             return true; // 第一轮总是合作
         }
 
+         // 简单进化：背叛太多就反击
+        if (opponent_defects >= 2)
+        {
+            return false; // 永远背叛
+        }
+
         // 简单计数：记录对手背叛次数
         if (!opponent_history.back())
         {
             opponent_defects++;
         }
 
-        // 简单进化：背叛太多就反击
-        if (opponent_defects > 2)
-        {
-            return false; // 永远背叛
-        }
+       
+        
         else
         {
             // 简单变异：10%概率随机选择
@@ -508,8 +511,10 @@ public:
             {
                 return dis(gen) > 0.5; // 随机选择合作或背叛
             }
+                
             return true; // 默认合作
         }
+            
     }
 
     void reset() override
